@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ============================================================
+         SPRING BOOT PARENT
+         ============================================================
+         This makes our project inherit all Spring Boot defaults:
+         - Default dependency versions (no need to specify versions for
+           spring-boot-starter-web, spring-boot-starter-data-jpa, etc.)
+         - Default plugin configurations
+         - Default properties
+
+         Think of it as: "Hey Maven, treat this project as a Spring Boot
+         project and give me all the sensible defaults."
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.5</version>
+        <relativePath/> <!-- Lookup from Maven Central, not local -->
+    </parent>
+
+    <!-- ============================================================
+         PROJECT COORDINATES
+         ============================================================
+         groupId    = your organization (like a Java package name)
+         artifactId = this project's unique name
+         version    = current version
+         packaging  = "pom" because this is a PARENT project
+                      (it doesn't produce a JAR itself, it just
+                       manages child modules)
+    -->
+    <groupId>com.codesentinel</groupId>
+    <artifactId>codesentinel-ai</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>CodeSentinel AI</name>
+    <description>Enterprise Code Reverse Engineering and Security Intelligence Platform</description>
+
+    <!-- ============================================================
+         MODULES
+         ============================================================
+         These are the child projects (microservices) that Maven will
+         build together. Each module is a separate folder with its own
+         pom.xml. When you run "mvn clean install" from the root, Maven
+         builds ALL modules in dependency order.
+
+         We start with these and will add ingestion-service,
+         parser-service later in Phase 2.
+    -->
+    <modules>
+        <module>common-lib</module>
+        <module>config-server</module>
+        <module>discovery-server</module>
+        <module>gateway-service</module>
+        <module>auth-service</module>
+    </modules>
+
+    <!-- ============================================================
+         GLOBAL PROPERTIES
+         ============================================================
+         Properties are like variables. Any module can reference these
+         using ${property.name}. This keeps versions in ONE place so
+         you don't end up with version mismatches across services.
+    -->
+    <properties>
+        <!-- Java version: we target Java 21 (LTS) even though
+             you have Java 25 installed. 25 is backward-compatible. -->
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Spring Cloud: provides Gateway, Config, Discovery, OpenFeign.
+             This version is compatible with Spring Boot 3.3.x -->
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+
+        <!-- JJWT: the library for creating and validating JWT tokens.
+             We need 3 artifacts: api (interfaces), impl (implementation),
+             jackson (JSON serialization) -->
+        <jjwt.version>0.12.6</jjwt.version>
+
+        <!-- Database driver version -->
+        <postgresql.version>42.7.4</postgresql.version>
+
+        <!-- Flyway: database migration tool. Think of it as "Git for
+             your database schema." You write SQL migration files and
+             Flyway runs them in order automatically on startup. -->
+        <flyway.version>10.20.1</flyway.version>
+
+        <!-- MapStruct: generates boilerplate code to convert between
+             Entity <-> DTO objects. Instead of writing 50 lines of
+             setters, you write 1 interface and MapStruct generates
+             the implementation at compile time. -->
+        <mapstruct.version>1.6.2</mapstruct.version>
+
+        <!-- Lombok: eliminates boilerplate (getters, setters, constructors,
+             builders, loggers). @Data on a class = all getters + setters +
+             toString + equals + hashCode generated automatically. -->
+        <lombok.version>1.18.34</lombok.version>
+
+        <!-- SpringDoc: auto-generates Swagger/OpenAPI docs from your
+             REST controllers. Visit /swagger-ui.html to see it. -->
+        <springdoc.version>2.6.0</springdoc.version>
+
+        <!-- JaCoCo: code coverage tool. Measures what percentage of
+             your code is exercised by unit tests. -->
+        <jacoco.version>0.8.12</jacoco.version>
+    </properties>
+
+    <!-- ============================================================
+         DEPENDENCY MANAGEMENT
+         ============================================================
+         This section does NOT add dependencies to child modules.
+         It only LOCKS versions. When a child module declares a
+         dependency listed here, it inherits the version from here
+         (so the child doesn't need to specify the version).
+
+         Think of it as: "If any child uses jjwt-api, use version 0.12.6"
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Cloud BOM (Bill of Materials)
+                 This imports ALL Spring Cloud dependency versions at once.
+                 type=pom + scope=import means "import this POM's
+                 dependencyManagement section into mine." -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- JWT Libraries -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope> <!-- Only needed at runtime, not compile time -->
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <!-- PostgreSQL JDBC Driver -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <!-- Flyway (DB migrations) -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+
+            <!-- MapStruct -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+                <scope>provided</scope> <!-- Only needed at compile time for code generation -->
+            </dependency>
+
+            <!-- SpringDoc OpenAPI (Swagger UI) -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- ============================================================
+         COMMON DEPENDENCIES (inherited by ALL child modules)
+         ============================================================
+         Unlike dependencyManagement, this section actually ADDS
+         dependencies to every child module. We put things here
+         that literally every microservice needs.
+    -->
+    <dependencies>
+        <!-- Lombok: every service uses @Data, @Builder, @Slf4j, etc. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring Boot Test: JUnit 5 + Mockito + Spring Test utilities.
+             scope=test means it's only available when running tests,
+             NOT included in the final JAR. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- ============================================================
+         BUILD CONFIGURATION
+         ============================================================
+         pluginManagement = lock plugin versions/configs for children
+         (children still need to declare the plugin, but inherit config)
+    -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Spring Boot Maven Plugin: packages the app as an
+                     executable JAR with embedded Tomcat. Also enables
+                     "mvn spring-boot:run" command. -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <!-- Don't include Lombok in the final JAR
+                                 (it's only needed at compile time) -->
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+
+                <!-- Maven Compiler Plugin: configures how Java code is compiled.
+                     We need annotationProcessorPaths so that Lombok and MapStruct
+                     code generation runs during compilation.
+
+                     ORDER MATTERS: Lombok must come before MapStruct because
+                     MapStruct needs to see the getters/setters that Lombok generates. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <!-- This binding allows Lombok and MapStruct
+                                 to work together without conflicts -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>0.2.0</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <!-- Flyway Maven Plugin: lets you run migrations from
+                     command line with "mvn flyway:migrate" -->
+                <plugin>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-maven-plugin</artifactId>
+                    <version>${flyway.version}</version>
+                </plugin>
+
+                <!-- JaCoCo Plugin: instruments your code during testing
+                     to measure code coverage. Generates HTML reports
+                     in target/site/jacoco/ -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <!-- prepare-agent: instruments bytecode before
+                             tests run so JaCoCo can track which lines execute -->
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <!-- report: generates the coverage report after
+                             tests complete -->
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
