@@ -1,0 +1,24 @@
+# =========================================================
+# GLOBAL SETTINGS (Applies to all microservices)
+# =========================================================
+
+# 1. Tell every service how to find the Eureka Discovery Server
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${DISCOVERY_SERVER_HOST:localhost}:${DISCOVERY_SERVER_PORT:8761}/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    # Use IP address instead of hostname (better for Docker networking)
+    prefer-ip-address: true
+
+# 2. Enable health monitoring endpoints for every service
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always

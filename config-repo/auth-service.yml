@@ -1,0 +1,14 @@
+server:
+  port: ${AUTH_SERVICE_PORT:8081}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${POSTGRES_AUTH_DB:auth_db}
+    username: ${POSTGRES_USER:codesentinel}
+    password: ${POSTGRES_PASSWORD:codesentinel_secret_2024}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # We use Flyway for migrations, so Hibernate should only 'validate', never 'update'
+      ddl-auto: validate
+    show-sql: true
