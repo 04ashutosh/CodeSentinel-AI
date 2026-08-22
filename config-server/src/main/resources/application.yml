@@ -1,0 +1,16 @@
+server:
+  port: ${CONFIG_SERVER_PORT:8888}
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    # Use the local file system to store configs instead of a remote Git repo
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # This tells the Config Server where to look for configuration files.
+          # We will create a 'config-repo' folder in the root directory later.
+          search-locations: file:./config-repo

@@ -56,8 +56,9 @@
         <module>common-lib</module>
         <module>config-server</module>
         <module>discovery-server</module>
-        <module>gateway-service</module>
-        <module>auth-service</module>
+        <!-- We will uncomment these as we create them in the next phases -->
+        <!-- <module>gateway-service</module> -->
+        <!-- <module>auth-service</module> -->
     </modules>
 
     <!-- ============================================================

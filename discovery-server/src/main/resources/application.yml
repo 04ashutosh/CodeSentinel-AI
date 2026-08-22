@@ -1,0 +1,17 @@
+server:
+  port: ${DISCOVERY_SERVER_PORT:8761}
+
+spring:
+  application:
+    name: discovery-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # Since this IS the server, it doesn't need to register with itself
+    register-with-eureka: false
+    # It also doesn't need to fetch the registry from itself
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
