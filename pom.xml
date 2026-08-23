@@ -57,9 +57,8 @@
         <module>config-server</module>
         <module>discovery-server</module>
         <module>gateway-service</module>
-        <module>gateway-service</module>
-        <!-- We will uncomment these as we create them in the next phases -->
-        <!-- <module>auth-service</module> -->
+        <module>auth-service</module>
+        <module>auth-service</module>
     </modules>
 
     <!-- ============================================================
