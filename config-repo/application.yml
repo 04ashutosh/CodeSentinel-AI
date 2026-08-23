@@ -22,3 +22,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+# 3. JWT Security Configuration
+jwt:
+  secret: ${JWT_SECRET}
