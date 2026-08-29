@@ -58,7 +58,8 @@
         <module>discovery-server</module>
         <module>gateway-service</module>
         <module>auth-service</module>
-        <module>auth-service</module>
+        <module>ingestion-service</module>
+        <module>ingestion-service</module>
     </modules>
 
     <!-- ============================================================
