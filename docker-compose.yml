@@ -1,0 +1,145 @@
+# ==============================================================
+# CodeSentinel AI — Full Stack Microservices
+# ==============================================================
+# Starts all Java Spring Boot microservices.
+# Run with: docker compose up -d --build
+# Make sure docker-compose.infra.yml is already running!
+# ==============================================================
+
+services:
+
+  # 1. Config Server (Provides centralized properties)
+  config-server:
+    build:
+      context: ./config-server
+    container_name: codesentinel-config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+    volumes:
+      - ./config-repo:/config-repo
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - codesentinel-network
+
+  # 2. Discovery Server (Eureka Registry)
+  discovery-server:
+    build:
+      context: ./discovery-server
+    container_name: codesentinel-discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - CONFIG_SERVER_HOST=config-server
+      - CONFIG_SERVER_PORT=8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - codesentinel-network
+
+  # 3. Gateway Service (API Router + Auth Filter)
+  gateway-service:
+    build:
+      context: ./gateway-service
+    container_name: codesentinel-gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - CONFIG_SERVER_HOST=config-server
+      - CONFIG_SERVER_PORT=8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - codesentinel-network
+
+  # 4. Auth Service (Registration, Login, JWT)
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: codesentinel-auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - CONFIG_SERVER_HOST=config-server
+      - CONFIG_SERVER_PORT=8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - DB_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_AUTH_DB=${POSTGRES_AUTH_DB}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - codesentinel-network
+
+  # 5. Ingestion Service (Handles zip uploads, stores to disk)
+  ingestion-service:
+    build:
+      context: ./ingestion-service
+    container_name: codesentinel-ingestion-service
+    ports:
+      - "8082:8082"
+    environment:
+      - CONFIG_SERVER_HOST=config-server
+      - CONFIG_SERVER_PORT=8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - DB_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INGESTION_DB=${POSTGRES_INGESTION_DB}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - INGESTION_STORAGE_PATH=/uploads
+    volumes:
+      - ./uploads:/uploads
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - codesentinel-network
+
+  # 6. Parser Service (JavaParser AST extraction)
+  parser-service:
+    build:
+      context: ./parser-service
+    container_name: codesentinel-parser-service
+    ports:
+      - "8083:8083"
+    environment:
+      - CONFIG_SERVER_HOST=config-server
+      - CONFIG_SERVER_PORT=8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - DB_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PARSER_DB=${POSTGRES_PARSER_DB}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+    volumes:
+      - ./uploads:/uploads  # Needs access to the extracted zips
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - codesentinel-network
+
+# Use the existing network created by docker-compose.infra.yml
+networks:
+  codesentinel-network:
+    external: true
+    name: codesentinel-ai_default
