@@ -9,6 +9,6 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      # We use Flyway for migrations, so Hibernate should only 'validate', never 'update'
-      ddl-auto: validate
+      # Use update for now until Flyway is added
+      ddl-auto: update
     show-sql: true

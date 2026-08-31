@@ -13,4 +13,4 @@ spring:
         native:
           # This tells the Config Server where to look for configuration files.
           # We will create a 'config-repo' folder in the root directory later.
-          search-locations: file:./config-repo
+          search-locations: file:/config-repo

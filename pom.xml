@@ -60,7 +60,6 @@
         <module>auth-service</module>
         <module>ingestion-service</module>
         <module>parser-service</module>
-        <module>parser-service</module>
     </modules>
 
     <!-- ============================================================
