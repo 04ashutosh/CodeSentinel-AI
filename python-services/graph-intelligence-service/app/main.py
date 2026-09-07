@@ -4,6 +4,7 @@ import time
 import requests
 import socket
 from app.config import settings
+from app.services.neo4j_service import neo4j_db
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -66,7 +67,18 @@ def startup_event():
 # ==============================================================
 @app.get("/api/v1/graph/health")
 def health_check():
-    return {"status": "UP", "service": settings.APP_NAME}
+    try:
+        #Try a tiny read query to see if Neo4j is responsive
+        neo4j_db.execute_read("RETURN 1 as test")
+        neo4j_status = "UP"
+    except Exception as e:
+        neo4j_status = f"DOWN: {str(e)}"
+
+    return{
+        "status": "UP",
+        "service": settings.APP_NAME,
+        "neo4j_status": neo4j_status
+    }
 
 @app.get("/mcp/tools")
 def get_mcp_tools():
