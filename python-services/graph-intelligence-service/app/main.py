@@ -5,6 +5,7 @@ import requests
 import socket
 from app.config import settings
 from app.services.neo4j_service import neo4j_db
+from app.services.kafka_consumer import kafka_consumer_service
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -59,8 +60,13 @@ def register_with_eureka():
 # Run Eureka registration in a background thread so it doesn't block FastAPI
 @app.on_event("startup")
 def startup_event():
+    # 1. Start Eureka Registration
     eureka_thread = threading.Thread(target=register_with_eureka, daemon=True)
     eureka_thread.start()
+    
+    # 2. Start Kafka Consumer
+    kafka_thread = threading.Thread(target=kafka_consumer_service.start_listening, daemon=True)
+    kafka_thread.start()
 
 # ==============================================================
 # Routes
