@@ -106,3 +106,7 @@ def get_mcp_tools():
             }
         ]
     }
+# At the bottom of main.py
+from app.routers import graph
+app.include_router(graph.router)
+

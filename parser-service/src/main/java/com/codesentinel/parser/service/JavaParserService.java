@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.kafka.core.KafkaTemplate;
+import java.util.Map;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public class JavaParserService {
 
     private final ParsedClassRepository parsedClassRepository;
+    private final KafkaTemplate<String,Object> kafkaTemplate;
 
     @Transactional
     public List<ParsedClass> parseProject(Long projectId, String storagePath) {
@@ -63,6 +66,16 @@ public class JavaParserService {
             // Save all parsed classes to database
             parsedClassRepository.saveAll(results);
             log.info("Saved {} parsed classes for project {}", results.size(), projectId);
+
+            // ==========================================
+            // NEW KAFKA PUBLISHER LOGIC
+            // ==========================================
+            log.info("Publishing parsing.completed event for project {}", projectId);
+            kafkaTemplate.send("parsing.completed", Map.of(
+                    "projectId", projectId,
+                    "status", "SUCCESS",
+                    "totalClasses", results.size()
+            ));
 
         } catch (IOException e) {
             log.error("Failed to walk project directory: {}", storagePath, e);
