@@ -9,7 +9,7 @@ class KafkaConsumerService:
     def __init__(self):
         self.conf = {
             'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS,
-            'group.id': 'graph-intelligence-group',
+            'group.id': 'graph-intelligence-group-2',
             'auto.offset.reset': 'earliest'
         }
         self.consumer = Consumer(self.conf)
@@ -25,6 +25,7 @@ class KafkaConsumerService:
         while self.running:
             # Poll for messages every 1 second
             msg = self.consumer.poll(timeout=1.0)
+            print("Polled...")
             
             if msg is None:
                 continue
@@ -50,7 +51,9 @@ class KafkaConsumerService:
                     # 2. Fetch the parsed Java metadata from our Java API Gateway
                     # We hit the Parser Service to get all classes for this project
                     api_url = f"http://gateway-service:8080/api/v1/parser/projects/{project_id}/classes"
-                    response = requests.get(api_url)
+                    import sys
+                    sys.stdout.flush()
+                    response = requests.get(api_url, timeout=10)
                     
                     if response.status_code == 200:
                         data = response.json()
