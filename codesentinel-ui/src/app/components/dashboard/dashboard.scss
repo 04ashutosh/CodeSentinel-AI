@@ -1,0 +1,35 @@
+.dashboard-layout {
+  display: flex;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+
+  .left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .instructions {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #17a2b8;
+
+      h3 {
+        margin-top: 0;
+        color: #17a2b8;
+      }
+
+      ol {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.6;
+      }
+    }
+  }
+
+  .right-panel {
+    flex: 2;
+  }
+}
