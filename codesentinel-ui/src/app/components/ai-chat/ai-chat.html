@@ -1,1 +1,30 @@
-<p>ai-chat works!</p>
+<div class="chat-container">
+  <h2>CodeSentinel AI Agent</h2>
+  
+  <div *ngIf="!projectId" class="no-project-warning">
+    Please upload a project first to start chatting!
+  </div>
+
+  <div *ngIf="projectId" class="chat-interface">
+    <div class="chat-history">
+      <div *ngFor="let msg of chatHistory" [ngClass]="['message', msg.role]">
+        <strong>{{ msg.role === 'user' ? 'You' : 'Agent' }}:</strong>
+        <p>{{ msg.text }}</p>
+      </div>
+      <div *ngIf="loading" class="message agent loading">
+        <strong>Agent:</strong> <p>Thinking...</p>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <input 
+        type="text" 
+        [(ngModel)]="question" 
+        (keyup.enter)="ask()" 
+        placeholder="Ask a question about your codebase..." 
+        [disabled]="loading"
+      />
+      <button (click)="ask()" [disabled]="!question.trim() || loading">Send</button>
+    </div>
+  </div>
+</div>
