@@ -170,6 +170,7 @@ services:
       - EUREKA_SERVER=http://discovery-server:8761/eureka/
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
       - GATEWAY_URL=http://gateway-service:8080
+      - GRAPH_SERVICE_URL=http://graph-intelligence-service:8091
     depends_on:
       discovery-server:
          condition: service_healthy

@@ -5,8 +5,8 @@ from app.config import settings
 
 class McpClientService:
     def __init__(self):
-        # We route our requests through the API Gateway!
-        self.graph_service_url = f"{settings.GATEWAY_URL}/api/v1/graph"
+        # Connect directly to the graph-intelligence service (not through Gateway)
+        self.graph_service_url = f"{settings.GRAPH_SERVICE_URL}/api/v1/graph"
 
     def fetch_graph_tools(self) -> List[StructuredTool]:
         tools = []
@@ -23,21 +23,38 @@ class McpClientService:
                 edges_response = requests.get(f"{self.graph_service_url}/projects/{projectId}/edges", timeout=10)
                 edges_data = edges_response.json().get("data", [])
                 
-                # Format a clean string representation for the LLM
-                summary = f"Project {projectId} Graph:\n\nNodes:\n"
+                # Separate package nodes from class nodes
+                current_package = "unknown"
+                summary = f"Project {projectId} Code Structure:\n\n"
+                
                 for node in nodes_data:
-                    summary += f"- {node.get('type', 'UNKNOWN')}: {node.get('name')} (Package: {node.get('packageName')})\n"
+                    name = node.get('name', '')
+                    node_type = node.get('type')
+                    file_path = node.get('filePath')
                     
-                summary += "\nRelationships:\n"
-                for edge in edges_data:
-                    summary += f"- {edge.get('source')} -> {edge.get('relationship')} -> {edge.get('target')}\n"
+                    if not node_type and not file_path and name:
+                        # This is a package node
+                        current_package = name
+                        summary += f"\nPackage: {name}\n"
+                    elif file_path:
+                        # This is a class/interface node
+                        kind = node_type or 'CLASS'
+                        fields = node.get('fieldCount', 0)
+                        methods = node.get('methodCount', 0)
+                        summary += f"  - {kind}: {name} ({fields} fields, {methods} methods) [{file_path}]\n"
+                    elif node_type and name:
+                        # External reference (like RuntimeException)
+                        summary += f"  - EXTERNAL {node_type}: {name}\n"
+                
+                if edges_data:
+                    summary += "\nRelationships:\n"
+                    for edge in edges_data:
+                        summary += f"  - {edge.get('source')} --[{edge.get('relationship')}]--> {edge.get('target')}\n"
                     
                 return summary
             except Exception as e:
                 return f"Error executing tool: {str(e)}"
 
-        # Wrap it into a LangChain StructuredTool without explicitly defining args_schema.
-        # LangChain will infer the schema from the python type hints (projectId: str).
         graph_tool = StructuredTool.from_function(
             func=execute_get_dependency_graph,
             name="get_dependency_graph",
