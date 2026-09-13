@@ -97,8 +97,3 @@ The application will be available at [http://localhost:4200](http://localhost:42
 - **Data**: PostgreSQL, Neo4j, Apache Kafka, Redis.
 - **AI**: Local LLM via Ollama (`llama3`).
 - **Parsing**: Eclipse JGit, JavaParser.
-
----
-
-## 📝 License
-This project is for educational and internal use.
