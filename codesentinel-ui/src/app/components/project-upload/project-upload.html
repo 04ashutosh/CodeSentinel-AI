@@ -1,1 +1,15 @@
-<p>project-upload works!</p>
+<div class="upload-container">
+  <h2>Upload Project</h2>
+  <p>Select a `.zip` file containing Java source code to analyze.</p>
+  
+  <div class="upload-controls">
+    <input type="file" (change)="onFileSelected($event)" accept=".zip" />
+    <button (click)="upload()" [disabled]="!selectedFile || uploading">
+      {{ uploading ? 'Uploading...' : 'Upload' }}
+    </button>
+  </div>
+
+  <div class="message" *ngIf="message">
+    {{ message }}
+  </div>
+</div>
