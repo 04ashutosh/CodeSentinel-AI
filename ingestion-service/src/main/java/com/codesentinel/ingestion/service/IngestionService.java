@@ -1,6 +1,7 @@
 package com.codesentinel.ingestion.service;
 
 import com.codesentinel.common.exception.ResourceNotFoundException;
+import com.codesentinel.ingestion.dto.GitIngestionRequest;
 import com.codesentinel.ingestion.dto.ProjectResponse;
 import com.codesentinel.ingestion.entity.Project;
 import com.codesentinel.ingestion.enums.IngestionStatus;
@@ -74,6 +75,53 @@ public class IngestionService {
             project.setErrorMessage(e.getMessage());
             projectRepository.save(project);
             log.error("Failed to process upload for project: {}", project.getId(), e);
+        }
+
+        return toResponse(project);
+    }
+
+    public ProjectResponse ingestGit(GitIngestionRequest request, String userEmail) {
+        Project project = Project.builder()
+                .name(request.getProjectName())
+                .userEmail(userEmail)
+                .sourceType(SourceType.GITHUB_URL)
+                .status(IngestionStatus.PROCESSING)
+                .build();
+        project = projectRepository.save(project);
+
+        try {
+            Path projectDir = Paths.get(storagePath, project.getId().toString());
+            Files.createDirectories(projectDir);
+
+            try (org.eclipse.jgit.api.Git git = org.eclipse.jgit.api.Git.cloneRepository()
+                    .setURI(request.getRepoUrl())
+                    .setBranch(request.getBranch() != null ? request.getBranch() : "main")
+                    .setDirectory(projectDir.toFile())
+                    .call()) {
+                log.info("Cloned repository successfully into {}", projectDir);
+            }
+
+            project.setStoragePath(projectDir.toString());
+            project.setStatus(IngestionStatus.COMPLETED);
+            projectRepository.save(project);
+
+            IngestionCompletedEvent event = IngestionCompletedEvent.builder()
+                    .projectId(project.getId())
+                    .projectName(project.getName())
+                    .storagePath(projectDir.toString())
+                    .userEmail(userEmail)
+                    .source("ingestion-service")
+                    .build();
+            event.initDefaults();
+
+            kafkaTemplate.send("ingestion.completed", event);
+            log.info("Published ingestion.completed event for project: {}", project.getId());
+
+        } catch (Exception e) {
+            project.setStatus(IngestionStatus.FAILED);
+            project.setErrorMessage(e.getMessage());
+            projectRepository.save(project);
+            log.error("Failed to process git upload for project: {}", project.getId(), e);
         }
 
         return toResponse(project);

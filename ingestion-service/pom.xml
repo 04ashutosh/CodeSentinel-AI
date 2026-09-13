@@ -18,6 +18,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- JGit for cloning repositories -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>6.8.0.202311291450-r</version>
+        </dependency>
+
         <!-- Database -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -50,6 +57,13 @@
             <groupId>com.codesentinel</groupId>
             <artifactId>common-lib</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- JGit for cloning repositories -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>6.8.0.202311291450-r</version>
         </dependency>
     </dependencies>
 

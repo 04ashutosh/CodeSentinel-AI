@@ -29,6 +29,16 @@ public class IngestionController {
                 .body(ApiResponse.success("Project uploaded successfully", response));
     }
 
+    @PostMapping("/git")
+    public ResponseEntity<ApiResponse<ProjectResponse>> ingestGit(
+            @RequestBody com.codesentinel.ingestion.dto.GitIngestionRequest request,
+            @RequestHeader("X-User-Email") String userEmail) {
+
+        ProjectResponse response = ingestionService.ingestGit(request, userEmail);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Git repository ingested successfully", response));
+    }
+
     @GetMapping("/projects/{id}")
     public ResponseEntity<ApiResponse<ProjectResponse>> getProject(@PathVariable Long id) {
         ProjectResponse response = ingestionService.getProject(id);

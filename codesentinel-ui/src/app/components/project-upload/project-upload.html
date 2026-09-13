@@ -1,12 +1,32 @@
 <div class="upload-container">
-  <h2>Upload Project</h2>
-  <p>Select a `.zip` file containing Java source code to analyze.</p>
+  <h2>Ingest Project</h2>
   
-  <div class="upload-controls">
-    <input type="file" (change)="onFileSelected($event)" accept=".zip" />
-    <button (click)="upload()" [disabled]="!selectedFile || uploading">
-      {{ uploading ? 'Uploading...' : 'Upload' }}
-    </button>
+  <div class="tabs">
+    <button [class.active]="mode === 'zip'" (click)="setMode('zip')">ZIP Upload</button>
+    <button [class.active]="mode === 'git'" (click)="setMode('git')">Git URL</button>
+  </div>
+
+  <div *ngIf="mode === 'zip'" class="tab-content">
+    <p>Select a `.zip` file containing Java source code to analyze.</p>
+    <div class="upload-controls">
+      <input type="file" (change)="onFileSelected($event)" accept=".zip" />
+      <button (click)="upload()" [disabled]="!selectedFile || uploading">
+        {{ uploading ? 'Uploading...' : 'Upload' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="mode === 'git'" class="tab-content">
+    <p>Provide a Git repository URL (must be public or use token in URL).</p>
+    <div class="git-form">
+      <input type="text" [(ngModel)]="gitProjectName" placeholder="Project Name" />
+      <input type="text" [(ngModel)]="gitUrl" placeholder="https://github.com/user/repo.git" />
+      <input type="text" [(ngModel)]="gitBranch" placeholder="Branch (e.g. main)" />
+      
+      <button (click)="uploadGit()" [disabled]="!gitUrl || !gitProjectName || uploading">
+        {{ uploading ? 'Ingesting...' : 'Ingest' }}
+      </button>
+    </div>
   </div>
 
   <div class="message" *ngIf="message">

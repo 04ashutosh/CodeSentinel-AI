@@ -20,6 +20,18 @@ export class Api {
     });
   }
 
+  ingestGit(repoUrl: string, branch: string, projectName: string): Observable<any> {
+    return this.http.post('/api/v1/ingestion/git', {
+      repoUrl,
+      branch,
+      projectName
+    }, {
+      headers: {
+        'X-User-Email': 'test@codesentinel.com'
+      }
+    });
+  }
+
   askQuestion(projectId: string, question: string): Observable<any> {
     return this.http.post('/api/v1/ai/chat', {
       projectId,
