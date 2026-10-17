@@ -1,6 +1,6 @@
 package com.codesentinel.parser.event;
 
-import com.codesentinel.parser.service.JavaParserService;
+import com.codesentinel.parser.engine.UniversalParserEngine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,7 +13,7 @@ import java.util.Map;
 @Slf4j
 public class IngestionEventConsumer {
 
-    private final JavaParserService javaParserService;
+    private final UniversalParserEngine universalParserEngine;
 
     @KafkaListener(topics = "ingestion.completed", groupId = "parser-service-group")
     public void onIngestionCompleted(Map<String, Object> event) {
@@ -24,7 +24,7 @@ public class IngestionEventConsumer {
 
             log.info("Received ingestion.completed event for project: {} (id: {})", projectName, projectId);
 
-            javaParserService.parseProject(projectId, storagePath);
+            universalParserEngine.parseProject(projectId, storagePath);
 
             log.info("Finished parsing project: {} (id: {})", projectName, projectId);
         } catch (Exception e) {

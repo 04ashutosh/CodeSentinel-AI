@@ -1,11 +1,15 @@
 package com.codesentinel.parser.controller;
 
 import com.codesentinel.common.dto.ApiResponse;
+import com.codesentinel.common.uir.FileInventoryRecord;
+import com.codesentinel.common.uir.UnifiedGraphPayload;
 import com.codesentinel.parser.dto.ClassMetadataResponse;
+import com.codesentinel.parser.engine.UniversalParserEngine;
+import com.codesentinel.parser.entity.FileInventoryEntity;
 import com.codesentinel.parser.entity.ParsedClass;
 import com.codesentinel.parser.enums.ClassType;
+import com.codesentinel.parser.repository.FileInventoryRepository;
 import com.codesentinel.parser.repository.ParsedClassRepository;
-import com.codesentinel.parser.service.JavaParserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,20 +23,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ParserController {
 
-    private final JavaParserService javaParserService;
+    private final UniversalParserEngine universalParserEngine;
     private final ParsedClassRepository parsedClassRepository;
+    private final FileInventoryRepository inventoryRepository;
 
     @PostMapping("/parse/{projectId}")
-    public ResponseEntity<ApiResponse<List<ClassMetadataResponse>>> parseProject(
+    public ResponseEntity<ApiResponse<UnifiedGraphPayload>> parseProject(
             @PathVariable Long projectId,
             @RequestParam String storagePath) {
-        List<ParsedClass> results = javaParserService.parseProject(projectId, storagePath);
-        List<ClassMetadataResponse> response = results.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success("Project parsed successfully", response));
+        UnifiedGraphPayload payload = universalParserEngine.parseProject(projectId, storagePath);
+        return ResponseEntity.ok(ApiResponse.success("Project parsed successfully", payload));
     }
 
+    @GetMapping("/projects/{projectId}/graph")
+    public ResponseEntity<ApiResponse<UnifiedGraphPayload>> getProjectGraph(
+            @PathVariable Long projectId) {
+        UnifiedGraphPayload payload = universalParserEngine.getProjectGraph(projectId);
+        return ResponseEntity.ok(ApiResponse.success("Project graph retrieved", payload));
+    }
+
+    @GetMapping("/projects/{projectId}/inventory")
+    public ResponseEntity<ApiResponse<List<FileInventoryEntity>>> getProjectInventory(
+            @PathVariable Long projectId) {
+        List<FileInventoryEntity> inventory = inventoryRepository.findByProjectId(projectId);
+        return ResponseEntity.ok(ApiResponse.success("Project inventory retrieved", inventory));
+    }
+
+    // ==========================================
+    // BACKWARD-COMPATIBLE ENDPOINTS
+    // ==========================================
     @GetMapping("/projects/{projectId}/classes")
     public ResponseEntity<ApiResponse<List<ClassMetadataResponse>>> getProjectClasses(
             @PathVariable Long projectId) {
