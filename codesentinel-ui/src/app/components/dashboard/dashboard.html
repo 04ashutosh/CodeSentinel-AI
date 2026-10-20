@@ -1,17 +1,42 @@
 <div class="dashboard-layout">
   <div class="left-panel">
-    <app-project-upload></app-project-upload>
-    <div class="instructions">
-      <h3>How it works</h3>
-      <ol>
-        <li>Upload a zipped Java project.</li>
-        <li>The system parses the code into a Neo4j Graph.</li>
-        <li>Our LangChain agent discovers the API tools.</li>
-        <li>Ask questions to the agent on the right!</li>
-      </ol>
+    <!-- Navigation Tabs -->
+    <div class="left-tabs">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'upload'"
+        (click)="setTab('upload')"
+      >
+        Project Ingestion
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'inventory'"
+        (click)="setTab('inventory')"
+      >
+        File Inventory & Graph Status
+      </button>
+    </div>
+
+    <!-- Active Tab Content -->
+    <div *ngIf="activeTab === 'upload'">
+      <app-project-upload></app-project-upload>
+      <div class="instructions">
+        <h3>Universal Multi-Language Reverse Engineering</h3>
+        <ol>
+          <li>Upload a repository via <strong>ZIP</strong> or <strong>Git URL</strong> (any programming language).</li>
+          <li>The multi-signal engine classifies all files & constructs a unified Neo4j dependency graph.</li>
+          <li>Inspect the <strong>File Inventory & Graph Status</strong> tab to view extracted files, tiers, and elements.</li>
+          <li>Ask architectural questions in the AI Chat on the right!</li>
+        </ol>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'inventory'">
+      <app-file-inventory></app-file-inventory>
     </div>
   </div>
-  
+
   <div class="right-panel">
     <app-ai-chat></app-ai-chat>
   </div>

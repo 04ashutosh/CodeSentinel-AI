@@ -32,6 +32,14 @@ export class Api {
     });
   }
 
+  getProjectInventory(projectId: string): Observable<any> {
+    return this.http.get(`/api/v1/parser/projects/${projectId}/inventory`);
+  }
+
+  getProjectGraph(projectId: string): Observable<any> {
+    return this.http.get(`/api/v1/parser/projects/${projectId}/graph`);
+  }
+
   askQuestion(projectId: string, question: string): Observable<any> {
     return this.http.post('/api/v1/ai/chat', {
       projectId,

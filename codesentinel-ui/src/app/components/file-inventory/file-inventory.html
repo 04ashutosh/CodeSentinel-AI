@@ -1,0 +1,110 @@
+<div class="inventory-container">
+  <div class="header">
+    <h3>Universal File Inventory & Graph Status</h3>
+    <button class="refresh-btn" (click)="projectId && loadInventory(projectId)" [disabled]="!projectId || loading">
+      {{ loading ? 'Analyzing...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="!projectId" class="no-project">
+    <p>Please ingest a project (ZIP or Git URL) to view its universal file analysis.</p>
+  </div>
+
+  <div *ngIf="projectId">
+    <!-- Stat Summary Badges -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="label">Total Files</span>
+        <span class="value">{{ inventory.length }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Graph Nodes</span>
+        <span class="value">{{ totalNodes }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Relationships</span>
+        <span class="value">{{ totalEdges }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Active Project ID</span>
+        <span class="value">#{{ projectId }}</span>
+      </div>
+    </div>
+
+    <!-- Multi-Language Filter Chips -->
+    <div class="language-chips">
+      <span class="chip-title">Languages:</span>
+      <button class="chip" [class.active]="selectedLanguage === 'ALL'" (click)="filterByLanguage('ALL')">
+        All ({{ inventory.length }})
+      </button>
+      <button
+        *ngFor="let lang of languages"
+        class="chip"
+        [class.active]="selectedLanguage === lang.name"
+        (click)="filterByLanguage(lang.name)"
+      >
+        {{ lang.name | uppercase }} ({{ lang.count }})
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Filter by file path or extension..."
+        [(ngModel)]="searchTerm"
+        (input)="applyFilter()"
+      />
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="table-wrapper">
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th>File Path</th>
+            <th>Language</th>
+            <th>Strategy Tier</th>
+            <th>Status</th>
+            <th>Elements</th>
+            <th>Diagnostics</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let file of filteredInventory">
+            <td class="file-path" title="{{ file.fileId }}">{{ file.fileId }}</td>
+            <td>
+              <span class="badge lang-badge">{{ file.detectedLanguage }}</span>
+            </td>
+            <td>
+              <span class="tier-tag">{{ file.analysisStrategy }}</span>
+            </td>
+            <td>
+              <span
+                class="badge status-badge"
+                [ngClass]="{
+                  'status-success': file.processingStatus === 'PARSED_SUCCESS',
+                  'status-partial': file.processingStatus === 'PARSED_PARTIAL',
+                  'status-binary': file.processingStatus === 'BINARY_EXCLUDED',
+                  'status-unrecognized': file.processingStatus === 'UNRECOGNIZED_SYNTAX',
+                  'status-failed': file.processingStatus === 'FAILED'
+                }"
+              >
+                {{ file.processingStatus }}
+              </span>
+            </td>
+            <td class="counts">
+              {{ file.extractedNodeCount }} nodes / {{ file.extractedRelationshipCount }} rels
+            </td>
+            <td class="diagnostics" title="{{ file.diagnostics }}">
+              {{ file.diagnostics || 'OK' }}
+            </td>
+          </tr>
+          <tr *ngIf="filteredInventory.length === 0">
+            <td colspan="6" class="no-results">No files matched the current filter.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
