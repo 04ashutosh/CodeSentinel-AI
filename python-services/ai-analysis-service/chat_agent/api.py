@@ -10,8 +10,9 @@ class ChatRequest(Schema):
 
 class ChatResponse(Schema):
     response: str
+    answer: Optional[str] = None
 
 @api.post("/api/v1/ai/chat", response=ChatResponse)
 def chat(request, payload: ChatRequest):
     answer = code_sentinel_agent.ask(payload.question, payload.projectId)
-    return {"response": answer}
+    return {"response": answer, "answer": answer}

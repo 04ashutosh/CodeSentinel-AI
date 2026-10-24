@@ -50,7 +50,7 @@ export class AiChat implements OnInit, OnDestroy {
         this.loading = false;
         this.chatHistory.push({
           role: 'agent',
-          text: res.answer || 'No answer provided by agent.'
+          text: res.response || res.answer || 'No answer provided by agent.'
         });
       },
       error: (err) => {

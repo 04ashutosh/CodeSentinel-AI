@@ -1,0 +1,1 @@
+int unclosed_function( { // syntax error intentional

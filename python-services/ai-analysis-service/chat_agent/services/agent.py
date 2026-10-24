@@ -1,5 +1,12 @@
-from langchain_community.chat_models import ChatOllama
-from langchain.schema import HumanMessage, SystemMessage
+try:
+    from langchain_ollama import ChatOllama
+except ImportError:
+    from langchain_community.chat_models import ChatOllama
+
+try:
+    from langchain_core.messages import HumanMessage, SystemMessage
+except ImportError:
+    from langchain.schema import HumanMessage, SystemMessage
 from django.conf import settings
 from chat_agent.services.mcp_client import mcp_client
 

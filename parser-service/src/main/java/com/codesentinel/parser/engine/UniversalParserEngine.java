@@ -155,22 +155,24 @@ public class UniversalParserEngine {
         payloadCache.put(projectId, payload);
 
         // 4. Publish Kafka Events
-        // A) Unified graph payload event
-        log.info("Publishing graph.update event for project {} (nodes: {}, edges: {})",
-                projectId, allNodes.size(), allRelationships.size());
-        kafkaTemplate.send("graph.update", Map.of(
-                "projectId", projectId,
-                "status", "SUCCESS",
-                "totalNodes", allNodes.size(),
-                "totalEdges", allRelationships.size()
-        ));
+        if (kafkaTemplate != null) {
+            // A) Unified graph payload event
+            log.info("Publishing graph.update event for project {} (nodes: {}, edges: {})",
+                    projectId, allNodes.size(), allRelationships.size());
+            kafkaTemplate.send("graph.update", Map.of(
+                    "projectId", projectId,
+                    "status", "SUCCESS",
+                    "totalNodes", allNodes.size(),
+                    "totalEdges", allRelationships.size()
+            ));
 
-        // B) Legacy parsing.completed event (backward compatibility)
-        kafkaTemplate.send("parsing.completed", Map.of(
-                "projectId", projectId,
-                "status", "SUCCESS",
-                "totalClasses", javaParserStrategy.getLegacyParsedClasses().size()
-        ));
+            // B) Legacy parsing.completed event (backward compatibility)
+            kafkaTemplate.send("parsing.completed", Map.of(
+                    "projectId", projectId,
+                    "status", "SUCCESS",
+                    "totalClasses", javaParserStrategy.getLegacyParsedClasses().size()
+            ));
+        }
 
         return payload;
     }
